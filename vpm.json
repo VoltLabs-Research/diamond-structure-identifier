@@ -1,0 +1,28 @@
+{
+  "name": "@voltlabs/identify-diamond",
+  "version": "1.0.0",
+  "kind": "workflow",
+  "publisher": "voltlabs",
+  "description": "Identify cubic and hexagonal diamond structures using second-nearest-neighbor shell CNA. Labels core atoms and first/second neighbour shells.",
+  "license": "MIT",
+  "homepage": "https://github.com/voltlabs-research/identify-diamond",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/voltlabs-research/identify-diamond"
+  },
+  "entrypoints": {
+    "binary": "identify-diamond-plugin.zip",
+    "workflow": "plugin.json"
+  },
+  "platforms": [
+    "linux-x86_64",
+    "darwin-arm64",
+    "windows-x86_64"
+  ],
+  "coretoolkit": "2.0.0",
+  "files": [
+    "plugin.json",
+    "bin",
+    "lib"
+  ]
+}

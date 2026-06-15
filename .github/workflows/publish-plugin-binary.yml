@@ -1,0 +1,17 @@
+name: Publish Plugin Binary
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    uses: VoltLabs-Research/CoreToolkit/.github/workflows/build-plugin-binary.yml@main
+    secrets: inherit
