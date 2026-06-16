@@ -12,7 +12,7 @@
             "icon": "HiCubeTransparent",
             "author": "VoltLabs Research",
             "license": "MIT",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "homepage": "https://github.com/voltlabs-research/identify-diamond",
             "description": "Identifies cubic and hexagonal diamond structures using 2nd-nearest-neighbour shell CNA. Labels core atoms and first/second neighbour shells."
           }

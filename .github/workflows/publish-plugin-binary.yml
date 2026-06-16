@@ -14,4 +14,8 @@ permissions:
 jobs:
   publish:
     uses: VoltLabs-Research/CoreToolkit/.github/workflows/build-plugin-binary.yml@main
+    with:
+      dependency_repos: |
+        StructureIdentification
+        CommonNeighborAnalysis
     secrets: inherit
