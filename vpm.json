@@ -1,6 +1,6 @@
 {
   "name": "@voltlabs/identify-diamond",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "kind": "workflow",
   "publisher": "voltlabs",
   "description": "Identify cubic and hexagonal diamond structures using second-nearest-neighbor shell CNA. Labels core atoms and first/second neighbour shells.",

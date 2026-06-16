@@ -167,6 +167,7 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
             .perAtomColumnWriter = [&types](ColumnarAtomWriter& w, size_t i) {
                 w.field("structure_type", static_cast<int64_t>(types[i]));
             },
+            .includeStructureColumns = true, // structural-identification plugin
         });
     }
 
