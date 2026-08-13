@@ -15,7 +15,7 @@
             "icon": "HiCubeTransparent",
             "author": "VoltLabs Research",
             "license": "MIT",
-            "version": "1.0.3",
+            "version": "1.0.4",
             "homepage": "https://github.com/voltlabs-research/identify-diamond",
             "description": "Identifies cubic and hexagonal diamond structures using 2nd-nearest-neighbour shell CNA. Labels core atoms and first/second neighbour shells."
           }
@@ -120,7 +120,53 @@
         "data": {
           "export": {
             "exporter": "AtomisticExporter",
-            "type": "glb"
+            "type": "glb",
+            "options": {
+              "propertyColors": {
+                "OTHER": [
+                  0.949,
+                  0.949,
+                  0.949,
+                  1
+                ],
+                "CUBIC_DIAMOND": [
+                  0.0745,
+                  0.6275,
+                  0.9961,
+                  1
+                ],
+                "CUBIC_DIAMOND_FIRST_NEIGH": [
+                  0,
+                  0.9961,
+                  0.9608,
+                  1
+                ],
+                "CUBIC_DIAMOND_SECOND_NEIGH": [
+                  0.4941,
+                  0.9961,
+                  0.7098,
+                  1
+                ],
+                "HEX_DIAMOND": [
+                  0.9961,
+                  0.5373,
+                  0,
+                  1
+                ],
+                "HEX_DIAMOND_FIRST_NEIGH": [
+                  0.9961,
+                  0.8627,
+                  0,
+                  1
+                ],
+                "HEX_DIAMOND_SECOND_NEIGH": [
+                  0.8,
+                  0.898,
+                  0.3176,
+                  1
+                ]
+              }
+            }
           }
         }
       },
