@@ -20,7 +20,6 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
     if (!positions)
         return AnalysisResult::failure("Failed to create position property");
 
-    // 4 nearest neighbours per atom (diamond is 4-coordinate).
     NearestNeighborFinder neighFinder(4);
     if (!neighFinder.prepare(positions.get(), frame.simulationCell))
         return AnalysisResult::failure("NearestNeighborFinder::prepare failed");
@@ -33,7 +32,6 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
     };
     std::vector<std::array<NeighInfo, 4>> neighLists(N);
 
-    // Build 4-NN lists.
     for (size_t idx = 0; idx < N; ++idx) {
         NearestNeighborFinder::Query<4> q(neighFinder);
         q.findNeighbors(idx);
@@ -50,11 +48,9 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
 
     std::vector<DiamondStructureType> types(N, DiamondStructureType::OTHER);
 
-    // Pass 1: identify atoms in cubic/hex diamond cores via 2nd-shell CNA.
     for (size_t idx = 0; idx < N; ++idx) {
         const auto& nlist = neighLists[idx];
 
-        // Generate 12 second-nearest-neighbour vectors.
         std::array<Vector3, 12> secondNeighbors;
         auto vout = secondNeighbors.begin();
         bool ok = true;
@@ -73,14 +69,12 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
         }
         if (!ok) continue;
 
-        // Local CNA cutoff from average second-neighbour distance.
         double sum = 0.0;
         for (const Vector3& v : secondNeighbors)
             sum += v.length();
         sum /= 12.0;
         const double localCutoffSq = (sum * 1.2071068) * (sum * 1.2071068);
 
-        // Build neighbour bond array for 12 second-shell atoms.
         NeighborBondArray nbArray;
         for (int ni1 = 0; ni1 < 12; ++ni1) {
             nbArray.setNeighborBond(ni1, ni1, false);
@@ -89,7 +83,6 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
                     (secondNeighbors[ni1] - secondNeighbors[ni2]).squaredLength() <= localCutoffSq);
         }
 
-        // CNA on each of the 12 second-shell bonds; count 4-2-1 and 4-2-2.
         int n421 = 0, n422 = 0;
         bool valid = true;
         for (int ni = 0; ni < 12; ++ni) {
@@ -112,7 +105,6 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
         else if (n421 == 6 && n422 == 6) types[idx] = DiamondStructureType::HEX_DIAMOND;
     }
 
-    // Pass 2: mark first-shell neighbours of crystalline cores.
     for (size_t idx = 0; idx < N; ++idx) {
         const auto ct = types[idx];
         if (ct != DiamondStructureType::CUBIC_DIAMOND && ct != DiamondStructureType::HEX_DIAMOND) continue;
@@ -126,7 +118,6 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
         }
     }
 
-    // Pass 3: mark second-shell neighbours.
     for (size_t idx = 0; idx < N; ++idx) {
         const auto ct = types[idx];
         if (ct != DiamondStructureType::CUBIC_DIAMOND_FIRST_NEIGH &&
@@ -141,7 +132,6 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
         }
     }
 
-    // Tally counts.
     std::map<int, int> counts;
     for (auto t : types)
         counts[static_cast<int>(t)]++;
@@ -167,11 +157,11 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
             .perAtomColumnWriter = [&types](ColumnarAtomWriter& w, size_t i) {
                 w.field("structure_type", static_cast<int64_t>(types[i]));
             },
-            .includeStructureColumns = true, // structural-identification plugin
+            .includeStructureColumns = true,
         });
     }
 
     return result;
 }
 
-} // namespace Volt
+}

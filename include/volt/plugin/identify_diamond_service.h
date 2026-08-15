@@ -12,12 +12,12 @@ using json = nlohmann::json;
 
 enum class DiamondStructureType : int {
     OTHER                       = 0,
-    CUBIC_DIAMOND               = 5,   // matches Volt::StructureType::CUBIC_DIAMOND
-    CUBIC_DIAMOND_FIRST_NEIGH   = 9,   // matches Volt::StructureType::CUBIC_DIAMOND_FIRST_NEIGH
-    CUBIC_DIAMOND_SECOND_NEIGH  = 10,  // matches Volt::StructureType::CUBIC_DIAMOND_SECOND_NEIGH
-    HEX_DIAMOND                 = 6,   // matches Volt::StructureType::HEX_DIAMOND
-    HEX_DIAMOND_FIRST_NEIGH     = 11,  // matches Volt::StructureType::HEX_DIAMOND_FIRST_NEIGH
-    HEX_DIAMOND_SECOND_NEIGH    = 12,  // matches Volt::StructureType::HEX_DIAMOND_SECOND_NEIGH
+    CUBIC_DIAMOND               = 5,
+    CUBIC_DIAMOND_FIRST_NEIGH   = 9,
+    CUBIC_DIAMOND_SECOND_NEIGH  = 10,
+    HEX_DIAMOND                 = 6,
+    HEX_DIAMOND_FIRST_NEIGH     = 11,
+    HEX_DIAMOND_SECOND_NEIGH    = 12,
 };
 
 inline const char* diamondStructureName(DiamondStructureType t) {
@@ -37,4 +37,4 @@ public:
     json compute(const LammpsParser::Frame& frame, const std::string& outputBase);
 };
 
-} // namespace Volt
+}
