@@ -51,3 +51,9 @@ output/
 *.log
 *.tar.zst
 *.sha256
+# Repowise
+.repowise
+
+# MCP and Claude
+.mcp.json
+.claude
