@@ -147,6 +147,18 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
     for (auto t : types)
         counts[static_cast<int>(t)]++;
 
+    const int cubic    = counts[static_cast<int>(DiamondStructureType::CUBIC_DIAMOND)];
+    const int cubic1st = counts[static_cast<int>(DiamondStructureType::CUBIC_DIAMOND_FIRST_NEIGH)];
+    const int cubic2nd = counts[static_cast<int>(DiamondStructureType::CUBIC_DIAMOND_SECOND_NEIGH)];
+    const int hex      = counts[static_cast<int>(DiamondStructureType::HEX_DIAMOND)];
+    const int hex1st   = counts[static_cast<int>(DiamondStructureType::HEX_DIAMOND_FIRST_NEIGH)];
+    const int hex2nd   = counts[static_cast<int>(DiamondStructureType::HEX_DIAMOND_SECOND_NEIGH)];
+    spdlog::info("Structure types: Cubic diamond {} ({:.1f}%), 1st neighbors {} ({:.1f}%), 2nd neighbors {} ({:.1f}%); "
+                 "Hexagonal diamond {} ({:.1f}%), 1st neighbors {} ({:.1f}%), 2nd neighbors {} ({:.1f}%); Other {} ({:.1f}%)",
+        cubic, percentOf(cubic, N), cubic1st, percentOf(cubic1st, N), cubic2nd, percentOf(cubic2nd, N),
+        hex, percentOf(hex, N), hex1st, percentOf(hex1st, N), hex2nd, percentOf(hex2nd, N),
+        counts[0], percentOf(counts[0], N));
+
     json result;
     result["main_listing"] = {
         {"total_atoms",                    frame.natoms},
