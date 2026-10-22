@@ -5,6 +5,7 @@
 #include <volt/core/frame_adapter.h>
 #include <volt/core/analysis_result.h>
 #include <volt/plugin/output_serializer.h>
+#include <volt/core/progress.h>
 #include <spdlog/spdlog.h>
 
 #include <array>
@@ -20,6 +21,8 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
     if (!positions)
         return AnalysisResult::failure("Failed to create position property");
 
+    spdlog::info("Building neighbor lists (4 nearest neighbors) for {} atoms...", frame.natoms);
+    Stopwatch timer;
     NearestNeighborFinder neighFinder(4);
     if (!neighFinder.prepare(positions.get(), frame.simulationCell))
         return AnalysisResult::failure("NearestNeighborFinder::prepare failed");
@@ -32,6 +35,7 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
     };
     std::vector<std::array<NeighInfo, 4>> neighLists(N);
 
+    ProgressReporter neighborProgress("Building neighbor lists", N);
     for (size_t idx = 0; idx < N; ++idx) {
         NearestNeighborFinder::Query<4> q(neighFinder);
         q.findNeighbors(idx);
@@ -44,11 +48,17 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
             neighLists[idx][i].vec.setZero();
             neighLists[idx][i].index = -1;
         }
+        neighborProgress.update(idx + 1);
     }
+    spdlog::info("Neighbor lists ready in {}", timer.elapsed());
 
     std::vector<DiamondStructureType> types(N, DiamondStructureType::OTHER);
 
+    spdlog::info("Classifying {} atoms...", N);
+    ProgressReporter progress("Classifying atoms", N);
     for (size_t idx = 0; idx < N; ++idx) {
+        // At the top because the checks below leave the iteration early.
+        progress.update(idx);
         const auto& nlist = neighLists[idx];
 
         std::array<Vector3, 12> secondNeighbors;
@@ -131,6 +141,7 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
                     : DiamondStructureType::HEX_DIAMOND_SECOND_NEIGH;
         }
     }
+    spdlog::info("Classified {} atoms in {}", N, progress.elapsed());
 
     std::map<int, int> counts;
     for (auto t : types)
