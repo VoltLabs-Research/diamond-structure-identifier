@@ -21,11 +21,14 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
     if (!positions)
         return AnalysisResult::failure("Failed to create position property");
 
+    // Neighbor search index, neighbor lists, classification and outputs.
+    ProgressSteps steps({1.0, 2.0, 4.0, 2.0});
     spdlog::info("Building neighbor lists (4 nearest neighbors) for {} atoms...", frame.natoms);
     Stopwatch timer;
     NearestNeighborFinder neighFinder(4);
     if (!neighFinder.prepare(positions.get(), frame.simulationCell))
         return AnalysisResult::failure("NearestNeighborFinder::prepare failed");
+    steps.next();
 
     const size_t N = static_cast<size_t>(frame.natoms);
 
@@ -51,6 +54,7 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
         neighborProgress.update(idx + 1);
     }
     spdlog::info("Neighbor lists ready in {}", timer.elapsed());
+    steps.next();
 
     std::vector<DiamondStructureType> types(N, DiamondStructureType::OTHER);
 
@@ -142,6 +146,7 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
         }
     }
     spdlog::info("Classified {} atoms in {}", N, progress.elapsed());
+    steps.next();
 
     std::map<int, int> counts;
     for (auto t : types)

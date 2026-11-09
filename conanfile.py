@@ -14,7 +14,7 @@ class IdentifyDiamondConan(ConanFile):
     requires = (
         "boost/1.88.0",
         "onetbb/2021.12.0",
-        "coretoolkit/[>=2.5]",
+        "coretoolkit/[>=2.8]",
         "common-neighbor-analysis/[>=2.0]",
         "structure-identification/[>=2.1]",
         "spdlog/1.14.1",
