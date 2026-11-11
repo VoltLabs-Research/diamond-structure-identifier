@@ -12,6 +12,7 @@
           "modifier": {
             "name": "Identify Diamond Structure",
             "key": "identify-diamond",
+            "category": "Structure identification",
             "icon": "HiCubeTransparent",
             "author": "VoltLabs Research",
             "license": "MIT",
