@@ -5,6 +5,7 @@ Identifies cubic and hexagonal diamond structures using 2nd-nearest-neighbour sh
 ## Install
 
 ```bash
+npm install -g @voltstack/vpm
 vpm install @voltlabs/identify-diamond
 ```
 
