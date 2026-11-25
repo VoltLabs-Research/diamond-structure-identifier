@@ -1,4 +1,5 @@
 #include <volt/plugin/identify_diamond_service.h>
+#include <volt/plugin/diamond_structure_identifier_log.h>
 #include <volt/analysis/nearest_neighbor_finder.h>
 #include <volt/analysis/cna_classifier.h>
 #include <volt/structures/neighbor_bond_array.h>
@@ -6,14 +7,16 @@
 #include <volt/core/analysis_result.h>
 #include <volt/plugin/output_serializer.h>
 #include <volt/core/progress.h>
-#include <spdlog/spdlog.h>
+#include <volt/core/type_counts.h>
 
 #include <array>
 #include <cmath>
+#include <map>
 
 namespace Volt {
 
 json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std::string& outputBase) {
+    DiamondStructureIdentifierLog log;
     if (frame.natoms <= 0)
         return AnalysisResult::failure("Invalid number of atoms");
 
@@ -21,10 +24,12 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
     if (!positions)
         return AnalysisResult::failure("Failed to create position property");
 
-    // Neighbor search index, neighbor lists, classification and outputs.
-    ProgressSteps steps({1.0, 2.0, 4.0, 2.0});
-    spdlog::info("Building neighbor lists (4 nearest neighbors) for {} atoms...", frame.natoms);
-    Stopwatch timer;
+    ProgressSteps steps({
+        {"Indexing the atoms for the neighbor search", 1.0},
+        {"Building neighbor lists", 2.0},
+        {"Classifying atoms", 4.0},
+        {"Writing outputs", 2.0},
+    });
     NearestNeighborFinder neighFinder(4);
     if (!neighFinder.prepare(positions.get(), frame.simulationCell))
         return AnalysisResult::failure("NearestNeighborFinder::prepare failed");
@@ -53,12 +58,11 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
         }
         neighborProgress.update(idx + 1);
     }
-    spdlog::info("Neighbor lists ready in {}", timer.elapsed());
+    log.dump(neighFinder);
     steps.next();
 
     std::vector<DiamondStructureType> types(N, DiamondStructureType::OTHER);
 
-    spdlog::info("Classifying {} atoms...", N);
     ProgressReporter progress("Classifying atoms", N);
     for (size_t idx = 0; idx < N; ++idx) {
         // At the top because the checks below leave the iteration early.
@@ -145,24 +149,10 @@ json IdentifyDiamondService::compute(const LammpsParser::Frame& frame, const std
                     : DiamondStructureType::HEX_DIAMOND_SECOND_NEIGH;
         }
     }
-    spdlog::info("Classified {} atoms in {}", N, progress.elapsed());
+    log.dump(types);
+    std::map<int, int> counts = countTypes(types);
+    log.dump(counts);
     steps.next();
-
-    std::map<int, int> counts;
-    for (auto t : types)
-        counts[static_cast<int>(t)]++;
-
-    const int cubic    = counts[static_cast<int>(DiamondStructureType::CUBIC_DIAMOND)];
-    const int cubic1st = counts[static_cast<int>(DiamondStructureType::CUBIC_DIAMOND_FIRST_NEIGH)];
-    const int cubic2nd = counts[static_cast<int>(DiamondStructureType::CUBIC_DIAMOND_SECOND_NEIGH)];
-    const int hex      = counts[static_cast<int>(DiamondStructureType::HEX_DIAMOND)];
-    const int hex1st   = counts[static_cast<int>(DiamondStructureType::HEX_DIAMOND_FIRST_NEIGH)];
-    const int hex2nd   = counts[static_cast<int>(DiamondStructureType::HEX_DIAMOND_SECOND_NEIGH)];
-    spdlog::info("Structure types: Cubic diamond {} ({:.1f}%), 1st neighbors {} ({:.1f}%), 2nd neighbors {} ({:.1f}%); "
-                 "Hexagonal diamond {} ({:.1f}%), 1st neighbors {} ({:.1f}%), 2nd neighbors {} ({:.1f}%); Other {} ({:.1f}%)",
-        cubic, percentOf(cubic, N), cubic1st, percentOf(cubic1st, N), cubic2nd, percentOf(cubic2nd, N),
-        hex, percentOf(hex, N), hex1st, percentOf(hex1st, N), hex2nd, percentOf(hex2nd, N),
-        counts[0], percentOf(counts[0], N));
 
     json result;
     result["main_listing"] = {
